@@ -35,18 +35,22 @@ input,select{width:100%;min-height:50px;border:1px solid var(--border);border-ra
 .result b{display:block;font-size:14px}
 .result span{display:block;font-size:12px;color:var(--muted);margin-top:3px}
 .selected{display:none;margin-top:8px;background:var(--bg);border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.45;overflow-wrap:anywhere}
-.items{display:flex;flex-direction:column;gap:10px;margin-top:10px}
-.category-group{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fff}
-.category-head{padding:8px 10px;background:var(--bg);font-size:13px;font-weight:800;border-bottom:1px solid var(--border)}
-.compact-head,.compact-row{display:grid;grid-template-columns:minmax(0,1fr) 68px 82px 88px 26px;gap:6px;align-items:center}
-.compact-head{padding:6px 8px;font-size:10px;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border)}
-.compact-row{padding:7px 8px;border-bottom:1px solid var(--border)}
+.items{display:flex;flex-direction:column;gap:12px;margin-top:10px}
+.category-block{display:block}
+.category-title{font-size:13px;font-weight:800;margin:0 0 5px 2px}
+.category-table{border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#fff}
+.compact-head,.compact-row{display:grid;grid-template-columns:minmax(0,1fr) 58px 72px 82px 22px;gap:0;align-items:center}
+.compact-head{font-size:9px;color:var(--muted);text-transform:uppercase;background:#fafafa;border-bottom:1px solid var(--border)}
+.compact-head>div,.compact-row>*{padding:5px 6px;border-right:1px solid var(--border)}
+.compact-head>div:last-child,.compact-row>*:last-child{border-right:0}
+.compact-row{min-height:34px;border-bottom:1px solid var(--border)}
 .compact-row:last-child{border-bottom:0}
-.compact-name{font-size:12px;font-weight:700;line-height:1.25;overflow-wrap:anywhere}
-.compact-qty,.compact-sum{font-size:12px;text-align:right;white-space:nowrap}
-.compact-price{width:100%;min-height:34px;padding:0 6px;border-radius:8px;font-size:12px;text-align:right}
+.compact-name{font-size:11px;font-weight:600;line-height:1.15;overflow-wrap:anywhere}
+.compact-qty,.compact-sum{font-size:11px;text-align:right;white-space:nowrap}
+.compact-price{width:100%;height:30px;min-height:30px;border:0;border-radius:0;padding:0 4px;font-size:11px;text-align:right;background:#fffbe8}
+.compact-price:focus{outline:2px solid #2563eb;outline-offset:-2px;background:#fff}
 .compact-sum{font-weight:800}
-.delete{border:0;background:transparent;color:var(--red);padding:0;font-size:18px;line-height:1;cursor:pointer}
+.delete{border:0;background:transparent;color:var(--red);padding:0;font-size:17px;line-height:1;cursor:pointer}
 .summary{margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
 .sumline{display:flex;justify-content:space-between;gap:10px;margin:6px 0}
 .sumline.total{font-size:18px;font-weight:800}
@@ -67,11 +71,11 @@ input,select{width:100%;min-height:50px;border:1px solid var(--border);border-ra
 @media(max-width:520px){
   .grid2{grid-template-columns:1fr}
   .price-line{grid-template-columns:1fr 105px}
-  .compact-head,.compact-row{grid-template-columns:minmax(0,1fr) 58px 74px 78px 24px;gap:4px}
-  .compact-head{font-size:9px;padding:6px}
-  .compact-row{padding:6px}
-  .compact-name,.compact-qty,.compact-sum{font-size:11px}
-  .compact-price{min-height:32px;font-size:11px;padding:0 4px}
+  .compact-head,.compact-row{grid-template-columns:minmax(0,1fr) 52px 66px 74px 20px}
+  .compact-head>div,.compact-row>*{padding:4px}
+  .compact-name,.compact-qty,.compact-sum,.compact-price{font-size:10px}
+  .compact-price{height:28px;min-height:28px;padding:0 3px}
+  .category-title{font-size:12px}
   .previews{grid-template-columns:repeat(2,1fr)}
 }
 </style>
@@ -326,21 +330,23 @@ function renderDraft(){
     const rows=draft.rows.map((r,i)=>({r,i})).filter(x=>x.r.category===cat.id);
     if(!rows.length)return "";
 
-    return '<div class="category-group">'+
-      '<div class="category-head">'+cat.name+'</div>'+
-      '<div class="compact-head">'+
-        '<div>Товар</div><div style="text-align:right">Кол.</div><div style="text-align:right">Цена</div><div style="text-align:right">Сумма</div><div></div>'+
+    return '<div class="category-block">'+
+      '<div class="category-title">'+cat.name+'</div>'+
+      '<div class="category-table">'+
+        '<div class="compact-head">'+
+          '<div>Товар</div><div style="text-align:right">Кол.</div><div style="text-align:right">Цена</div><div style="text-align:right">Сумма</div><div></div>'+
+        '</div>'+
+        rows.map(x=>{
+          const r=x.r,i=x.i;
+          return '<div class="compact-row">'+
+            '<div class="compact-name">'+r.name+'</div>'+
+            '<div class="compact-qty">'+Number(r.qty).toLocaleString("ru-RU")+'</div>'+
+            '<input class="compact-price" type="text" inputmode="decimal" data-price-index="'+i+'" value="'+r.price+'" aria-label="Цена '+r.name+'">'+
+            '<div class="compact-sum">'+money(Number(r.qty)*Number(r.price))+'</div>'+
+            '<button class="delete" type="button" data-del="'+i+'" aria-label="Удалить">×</button>'+
+          '</div>';
+        }).join("")+
       '</div>'+
-      rows.map(x=>{
-        const r=x.r,i=x.i;
-        return '<div class="compact-row">'+
-          '<div class="compact-name">'+r.name+'</div>'+
-          '<div class="compact-qty">'+Number(r.qty).toLocaleString("ru-RU")+'</div>'+
-          '<input class="compact-price" type="text" inputmode="decimal" data-price-index="'+i+'" value="'+r.price+'">'+
-          '<div class="compact-sum">'+money(Number(r.qty)*Number(r.price))+'</div>'+
-          '<button class="delete" type="button" data-del="'+i+'" aria-label="Удалить">×</button>'+
-        '</div>';
-      }).join("")+
     '</div>';
   }).join("");
 
@@ -419,15 +425,23 @@ $("addBtn").addEventListener("click",()=>{
   safeSave();renderDraft();showMsg("Товар добавлен.",false);
 });
 
-$("items").addEventListener("change",e=>{
+$("items").addEventListener("input",e=>{
   if(!e.target.matches("[data-price-index]"))return;
   const i=Number(e.target.dataset.priceIndex);
   const p=parseNum(e.target.value);
-  if(Number.isFinite(p)&&p>=0){
-    draft.rows[i].price=p;
-    safeSave();
-    renderDraft();
+  if(!Number.isFinite(p)||p<0)return;
+  draft.rows[i].price=p;
+  safeSave();
+
+  const row=e.target.closest(".compact-row");
+  if(row){
+    const sum=row.querySelector(".compact-sum");
+    if(sum)sum.textContent=money(Number(draft.rows[i].qty)*p);
   }
+
+  let total=0;
+  draft.rows.forEach(r=>total+=Number(r.qty)*Number(r.price));
+  $("totalSum").textContent=money(total)+" "+sym(draft.currency);
 });
 $("items").addEventListener("click",e=>{
   const b=e.target.closest("[data-del]");
