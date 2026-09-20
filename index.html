@@ -35,14 +35,18 @@ input,select{width:100%;min-height:50px;border:1px solid var(--border);border-ra
 .result b{display:block;font-size:14px}
 .result span{display:block;font-size:12px;color:var(--muted);margin-top:3px}
 .selected{display:none;margin-top:8px;background:var(--bg);border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.45;overflow-wrap:anywhere}
-.items{display:flex;flex-direction:column;gap:8px;margin-top:12px}
-.item{border:1px solid var(--border);border-radius:12px;padding:12px}
-.item-name{font-weight:800;font-size:14px;line-height:1.4;overflow-wrap:anywhere}
-.item-meta{margin-top:5px;font-size:12px;color:var(--muted);line-height:1.5}
-.item-price-edit{display:grid;grid-template-columns:1fr 120px;gap:10px;align-items:center;margin-top:9px}
-.item-price-edit input{min-height:42px;font-size:15px}
-.item-total{margin-top:7px;font-weight:800}
-.delete{margin-top:8px;border:0;background:transparent;color:var(--red);padding:0;font-size:12px;cursor:pointer}
+.items{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.category-group{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fff}
+.category-head{padding:8px 10px;background:var(--bg);font-size:13px;font-weight:800;border-bottom:1px solid var(--border)}
+.compact-head,.compact-row{display:grid;grid-template-columns:minmax(0,1fr) 68px 82px 88px 26px;gap:6px;align-items:center}
+.compact-head{padding:6px 8px;font-size:10px;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border)}
+.compact-row{padding:7px 8px;border-bottom:1px solid var(--border)}
+.compact-row:last-child{border-bottom:0}
+.compact-name{font-size:12px;font-weight:700;line-height:1.25;overflow-wrap:anywhere}
+.compact-qty,.compact-sum{font-size:12px;text-align:right;white-space:nowrap}
+.compact-price{width:100%;min-height:34px;padding:0 6px;border-radius:8px;font-size:12px;text-align:right}
+.compact-sum{font-weight:800}
+.delete{border:0;background:transparent;color:var(--red);padding:0;font-size:18px;line-height:1;cursor:pointer}
 .summary{margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
 .sumline{display:flex;justify-content:space-between;gap:10px;margin:6px 0}
 .sumline.total{font-size:18px;font-weight:800}
@@ -63,7 +67,11 @@ input,select{width:100%;min-height:50px;border:1px solid var(--border);border-ra
 @media(max-width:520px){
   .grid2{grid-template-columns:1fr}
   .price-line{grid-template-columns:1fr 105px}
-  .item-price-edit{grid-template-columns:1fr 110px}
+  .compact-head,.compact-row{grid-template-columns:minmax(0,1fr) 58px 74px 78px 24px;gap:4px}
+  .compact-head{font-size:9px;padding:6px}
+  .compact-row{padding:6px}
+  .compact-name,.compact-qty,.compact-sum{font-size:11px}
+  .compact-price{min-height:32px;font-size:11px;padding:0 4px}
   .previews{grid-template-columns:repeat(2,1fr)}
 }
 </style>
@@ -299,19 +307,44 @@ function renderDraft(){
   $("client").value=draft.client||"";
   $("currency").value=draft.currency||"UAH";
   $("count").textContent=draft.rows.length;
+
   let tq=0,total=0;
-  draft.rows.forEach(r=>{tq+=Number(r.qty);total+=Number(r.qty)*Number(r.price)});
+  draft.rows.forEach(r=>{
+    tq+=Number(r.qty);
+    total+=Number(r.qty)*Number(r.price);
+  });
+
   $("totalQty").textContent=tq.toLocaleString("ru-RU");
   $("totalSum").textContent=money(total)+" "+sym(draft.currency);
-  $("items").innerHTML=draft.rows.length?draft.rows.map((r,i)=>
-    '<div class="item">'+
-      '<div class="item-name">'+(i+1)+'. '+r.name+'</div>'+
-      '<div class="item-meta">'+catName(r.category)+(r.category==="flavor"?"":('<br>SKU '+r.sku))+'<br>'+Number(r.qty).toLocaleString("ru-RU")+' шт.</div>'+
-      '<div class="item-price-edit"><span>Цена за единицу</span><input type="text" inputmode="decimal" data-price-index="'+i+'" value="'+r.price+'"></div>'+
-      '<div class="item-total">'+money(Number(r.qty)*Number(r.price))+' '+sym(draft.currency)+'</div>'+
-      '<button class="delete" type="button" data-del="'+i+'">Удалить</button>'+
-    '</div>'
-  ).join(""):'<div class="empty">Товары ещё не добавлены.</div>';
+
+  if(!draft.rows.length){
+    $("items").innerHTML='<div class="empty">Товары ещё не добавлены.</div>';
+    return;
+  }
+
+  const groups=CATEGORIES.map(cat=>{
+    const rows=draft.rows.map((r,i)=>({r,i})).filter(x=>x.r.category===cat.id);
+    if(!rows.length)return "";
+
+    return '<div class="category-group">'+
+      '<div class="category-head">'+cat.name+'</div>'+
+      '<div class="compact-head">'+
+        '<div>Товар</div><div style="text-align:right">Кол.</div><div style="text-align:right">Цена</div><div style="text-align:right">Сумма</div><div></div>'+
+      '</div>'+
+      rows.map(x=>{
+        const r=x.r,i=x.i;
+        return '<div class="compact-row">'+
+          '<div class="compact-name">'+r.name+'</div>'+
+          '<div class="compact-qty">'+Number(r.qty).toLocaleString("ru-RU")+'</div>'+
+          '<input class="compact-price" type="text" inputmode="decimal" data-price-index="'+i+'" value="'+r.price+'">'+
+          '<div class="compact-sum">'+money(Number(r.qty)*Number(r.price))+'</div>'+
+          '<button class="delete" type="button" data-del="'+i+'" aria-label="Удалить">×</button>'+
+        '</div>';
+      }).join("")+
+    '</div>';
+  }).join("");
+
+  $("items").innerHTML=groups;
 }
 
 function renderSent(){
@@ -386,11 +419,15 @@ $("addBtn").addEventListener("click",()=>{
   safeSave();renderDraft();showMsg("Товар добавлен.",false);
 });
 
-$("items").addEventListener("input",e=>{
+$("items").addEventListener("change",e=>{
   if(!e.target.matches("[data-price-index]"))return;
   const i=Number(e.target.dataset.priceIndex);
   const p=parseNum(e.target.value);
-  if(Number.isFinite(p)&&p>=0){draft.rows[i].price=p;safeSave();renderDraft()}
+  if(Number.isFinite(p)&&p>=0){
+    draft.rows[i].price=p;
+    safeSave();
+    renderDraft();
+  }
 });
 $("items").addEventListener("click",e=>{
   const b=e.target.closest("[data-del]");
