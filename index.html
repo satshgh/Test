@@ -26,6 +26,10 @@ input,select{width:100%;min-height:50px;border:1px solid var(--border);border-ra
 .secondary{background:#fff;border:1px solid var(--border);color:var(--text)}
 .soft{background:var(--soft);color:#234ea3}
 .status{border:1px solid var(--border);background:#fff;border-radius:999px;padding:8px 11px;font-size:13px}
+.import-box{margin-bottom:13px;padding:10px;border:1px dashed #cbd5e1;border-radius:12px;background:#fafafa}
+.import-actions{display:flex;gap:8px;align-items:center}
+.import-actions .btn{flex:1}
+.import-status{margin-top:7px;font-size:12px;color:var(--muted)}
 .price-panel{display:none;margin-top:12px;padding:12px;border-radius:12px;background:var(--bg)}
 .price-line{display:grid;grid-template-columns:1fr 120px;gap:10px;align-items:center;margin-bottom:9px}
 .price-line:last-child{margin-bottom:0}
@@ -92,6 +96,14 @@ input,select{width:100%;min-height:50px;border:1px solid var(--border);border-ra
 
   <div class="card">
     <h2>Заказ</h2>
+    <div class="import-box">
+      <div class="import-actions">
+        <button id="importBtn" class="btn soft" type="button">Загрузить заказ</button>
+        <input id="importFile" type="file" accept=".json,.txt,application/json,text/plain" hidden>
+      </div>
+      <div id="importStatus" class="import-status">Поддерживается подготовленный JSON-файл заказа.</div>
+    </div>
+
     <div class="field">
       <label for="client">Клиент</label>
       <input id="client" type="text" placeholder="Например: Андрей / SAHK">
@@ -250,6 +262,19 @@ function parseNum(v){return Number(String(v).trim().replace(",",".").replace(/\s
 function sym(c){return c==="USD"?"$":"₴"}
 function money(v){return Number(v).toLocaleString("ru-RU",{minimumFractionDigits:2,maximumFractionDigits:2})}
 function catName(id){const c=CATEGORIES.find(x=>x.id===id);return c?c.name:id}
+function norm(v){return String(v||"").trim().toLowerCase().replace(/\s+/g," ")}
+function findProduct(item){
+  if(item && item.sku){
+    const bySku=PRODUCTS.find(p=>String(p.sku)===String(item.sku).trim());
+    if(bySku)return bySku;
+  }
+  if(item && item.name){
+    const n=norm(item.name);
+    const exact=PRODUCTS.find(p=>norm(p.name)===n);
+    if(exact)return exact;
+  }
+  return null;
+}
 
 function safeLoad(){
   try{
@@ -369,6 +394,92 @@ function renderSent(){
   }).join("");
 }
 function render(){renderDraft();renderSent()}
+
+$("importBtn").addEventListener("click",()=>$("importFile").click());
+
+$("importFile").addEventListener("change",async e=>{
+  const file=e.target.files&&e.target.files[0];
+  e.target.value="";
+  if(!file)return;
+
+  try{
+    const raw=await file.text();
+    const data=JSON.parse(raw);
+    const sourceItems=Array.isArray(data.items)?data.items:(Array.isArray(data.products)?data.products:[]);
+    if(!sourceItems.length)throw new Error("В файле нет списка items.");
+
+    if(draft.rows.length && !confirm("Текущий заказ уже содержит товары. Заменить его загружаемым заказом?"))return;
+
+    if(data.category_prices && typeof data.category_prices==="object"){
+      Object.keys(categoryPrices).forEach(k=>{
+        if(data.category_prices[k]!==undefined && data.category_prices[k]!==null){
+          categoryPrices[k]=String(data.category_prices[k]);
+        }
+      });
+    }
+
+    const imported=[];
+    const unknown=[];
+
+    sourceItems.forEach(item=>{
+      const product=findProduct(item);
+      if(!product){
+        unknown.push(item.name||item.sku||"Без названия");
+        return;
+      }
+
+      const qty=parseNum(item.qty!==undefined?item.qty:item.quantity);
+      if(!Number.isFinite(qty)||qty<=0){
+        unknown.push((item.name||product.name)+" — неверное количество");
+        return;
+      }
+
+      let price;
+      if(item.price!==undefined && item.price!==null && item.price!==""){
+        price=parseNum(item.price);
+      }else{
+        const cp=data.category_prices&&data.category_prices[product.category]!==undefined
+          ? data.category_prices[product.category]
+          : categoryPrices[product.category];
+        price=cp!==undefined && cp!==null && cp!=="" ? parseNum(cp) : 0;
+      }
+      if(!Number.isFinite(price)||price<0)price=0;
+
+      imported.push({
+        sku:product.sku,
+        name:product.name,
+        category:product.category,
+        qty:qty,
+        price:price
+      });
+    });
+
+    if(!imported.length)throw new Error("Ни один товар из файла не найден в каталоге.");
+
+    draft={
+      client:String(data.client||""),
+      currency:String(data.currency||"UAH").toUpperCase()==="USD"?"USD":"UAH",
+      rows:imported
+    };
+
+    safeSave();
+    buildCategories();
+    render();
+
+    $("importStatus").textContent=
+      "Загружено позиций: "+imported.length+
+      (unknown.length?(". Не распознано: "+unknown.length+" — "+unknown.slice(0,3).join(", ")+(unknown.length>3?"…":"")):".");
+
+    if(unknown.length){
+      alert("Заказ загружен частично. Не распознано позиций: "+unknown.length+"\n\n"+unknown.join("\n"));
+    }else{
+      alert("Заказ загружен: "+imported.length+" позиций.");
+    }
+  }catch(err){
+    $("importStatus").textContent="Ошибка загрузки: "+err.message;
+    alert("Не удалось загрузить заказ. Нужен подготовленный JSON-файл.");
+  }
+});
 
 $("priceBtn").addEventListener("click",()=>{
   const p=$("pricePanel");
