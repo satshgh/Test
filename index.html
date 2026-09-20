@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Приход товара</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--text:#17191c;--muted:#747a82;--border:#e3e6ea;--blue:#2563eb;--green:#15803d;--red:#b42318;--soft:#eef4ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+.app{max-width:640px;margin:0 auto;padding:12px 10px 36px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 2px 14px}
+.brand{font-size:22px;font-weight:800}
+.small{font-size:13px;color:var(--muted)}
+.card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px}
+h2{font-size:17px;margin:0 0 14px}
+label{display:block;font-size:13px;font-weight:700;margin:0 0 7px}
+input,select,button{font:inherit}
+input,select{width:100%;min-height:50px;border:1px solid var(--border);border-radius:12px;padding:0 12px;background:#fff;color:var(--text);font-size:16px}
+.field{margin-bottom:13px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{min-height:48px;border:0;border-radius:12px;padding:0 15px;font-weight:800;cursor:pointer}
+.primary{width:100%;background:var(--blue);color:#fff}
+.secondary{background:#fff;border:1px solid var(--border);color:var(--text)}
+.soft{background:var(--soft);color:#234ea3}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.fullname{display:none;background:var(--bg);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:14px;line-height:1.45;overflow-wrap:anywhere}
+.items{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.item{border:1px solid var(--border);border-radius:12px;padding:12px}
+.item-name{font-weight:800;font-size:14px;line-height:1.4;overflow-wrap:anywhere}
+.item-meta{margin-top:5px;font-size:12px;color:var(--muted);line-height:1.5}
+.item-total{margin-top:6px;font-weight:800}
+.delete{margin-top:8px;border:0;background:transparent;color:var(--red);padding:0;font-size:12px}
+.summary{margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.sumline{display:flex;justify-content:space-between;gap:10px;margin:6px 0}
+.sumline.total{font-size:18px;font-weight:800}
+.message{display:none;margin-top:10px;padding:10px 12px;border-radius:10px;background:#eaf8ef;color:#166534;font-size:13px}
+.message.error{background:#fff1f0;color:#b42318}
+.sent{display:flex;flex-direction:column;gap:8px}
+.sent-card{border:1px solid var(--border);border-radius:12px;padding:12px;background:#fff}
+.sent-title{font-weight:800}
+.sent-meta{margin-top:4px;color:var(--muted);font-size:12px;line-height:1.5}
+.order-no{display:inline-block;background:var(--soft);color:#234ea3;border-radius:999px;padding:4px 8px;font-size:11px;margin-bottom:6px}
+.empty{font-size:13px;color:var(--muted)}
+.status{border:1px solid var(--border);background:#fff;border-radius:999px;padding:8px 11px;font-size:13px}
+@media(max-width:520px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div>
+      <div class="brand">Приход товара</div>
+      <div class="small">Новый заказ</div>
+    </div>
+    <button id="netBtn" class="status" type="button">🟢 Онлайн</button>
+  </div>
+
+  <div class="card">
+    <h2>Заказ</h2>
+    <div class="field">
+      <label for="client">Клиент</label>
+      <input id="client" type="text" placeholder="Например: Андрей / SAHK">
+    </div>
+    <div class="field">
+      <label for="currency">Валюта</label>
+      <select id="currency">
+        <option value="UAH">Гривна (₴)</option>
+        <option value="USD">Доллар ($)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Добавить товар</h2>
+    <div class="field">
+      <label for="product">Товар</label>
+      <select id="product"><option value="">Выберите товар</option>
+<option value="0">Spearmint — SKU 8008006378330</option>
+<option value="1">Strawberry Raspberry Cherry Ice — SKU 8008006378347</option>
+<option value="2">Blackberry Lemon — SKU 8008006378354</option>
+<option value="3">Watermelon — SKU 8008006378361</option>
+<option value="4">Sour Apple — SKU 8008006378378</option>
+<option value="5">Apple Peach — SKU 8008006378385</option>
+<option value="6">Blueberry — SKU 8008006378392</option>
+<option value="7">Blueberry Sour Raspberry — SKU 8008006378408</option>
+<option value="8">Strawberry Ice — SKU 8008006378415</option>
+<option value="9">Cherry — SKU 8008006378422</option>
+<option value="10">Strawberry Kiwi — SKU 8008006378439</option>
+<option value="11">Blue Razz Lemonade — SKU 8008006378446</option>
+<option value="12">Cherry Cola — SKU 8008006378453</option>
+<option value="13">Peach Ice — SKU 8008006378460</option>
+<option value="14">ELF Jack — SKU 8008006378477</option>
+<option value="15">Pink Lemonade Soda — SKU 8008006378484</option>
+<option value="16">Pink Grapefruit — SKU 8008006378491</option>
+<option value="17">Pina Colada — SKU 8008006378507</option>
+<option value="18">Grape — SKU 8008006378514</option>
+<option value="19">Kiwi Passion Fruit Guava — SKU 8008006378521</option>
+<option value="20">Strawberry Cherry Lemon — SKU 8008006378538</option>
+<option value="21">Cherry Lemon Peach — SKU 8008006378545</option>
+<option value="22">Watermelon Cherry — SKU 8008006378552</option>
+<option value="23">Elfbull Ice — SKU 8008006378569</option>
+<option value="24">Lemon Lime — SKU 8008006378576</option>
+<option value="25">Grape Cherry — SKU 8008006378583</option>
+<option value="26">Wild Berries Baja Splash — SKU 8008006378590</option>
+<option value="27">Grape Apple — SKU 8008006378606</option>
+<option value="28">Watermelon Sour Peach — SKU 8008006378613</option>
+<option value="29">Pear Cranberry Lemon — SKU 8008006378620</option></select>
+      <div id="fullName" class="fullname"></div>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label for="qty">Количество</label>
+        <input id="qty" type="text" inputmode="numeric" placeholder="12500">
+      </div>
+      <div class="field">
+        <label for="price">Цена за единицу</label>
+        <input id="price" type="text" inputmode="decimal" placeholder="1.25">
+      </div>
+    </div>
+    <button id="addBtn" class="btn primary" type="button">Добавить товар</button>
+    <div id="msg" class="message"></div>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <h2 style="margin:0">Текущий заказ: <span id="count">0</span> поз.</h2>
+      <button id="clearCurrent" class="btn secondary" type="button">Очистить</button>
+    </div>
+    <div id="items" class="items"></div>
+    <div class="summary">
+      <div class="sumline"><span>Всего единиц</span><strong id="totalQty">0</strong></div>
+      <div class="sumline total"><span>Сумма</span><span id="totalSum">0 ₴</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <button id="sendBtn" class="btn primary" type="button">Отправить заказ</button>
+    <div class="small" style="margin-top:9px">После отправки текущий заказ закрывается, а форма сразу очищается для следующего заказа.</div>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <h2 style="margin:0">Отправленные сегодня</h2>
+      <button id="clearHistory" class="btn secondary" type="button">Очистить историю</button>
+    </div>
+    <div id="sent" class="sent" style="margin-top:12px"></div>
+  </div>
+</div>
+
+<script>
+const PRODUCTS = [{"sku":"8008006378330","name":"Spearmint","planned":2000},{"sku":"8008006378347","name":"Strawberry Raspberry Cherry Ice","planned":4800},{"sku":"8008006378354","name":"Blackberry Lemon","planned":4000},{"sku":"8008006378361","name":"Watermelon","planned":2000},{"sku":"8008006378378","name":"Sour Apple","planned":4800},{"sku":"8008006378385","name":"Apple Peach","planned":2800},{"sku":"8008006378392","name":"Blueberry","planned":2000},{"sku":"8008006378408","name":"Blueberry Sour Raspberry","planned":4000},{"sku":"8008006378415","name":"Strawberry Ice","planned":3200},{"sku":"8008006378422","name":"Cherry","planned":3200},{"sku":"8008006378439","name":"Strawberry Kiwi","planned":4800},{"sku":"8008006378446","name":"Blue Razz Lemonade","planned":2000},{"sku":"8008006378453","name":"Cherry Cola","planned":3200},{"sku":"8008006378460","name":"Peach Ice","planned":3200},{"sku":"8008006378477","name":"ELF Jack","planned":3200},{"sku":"8008006378484","name":"Pink Lemonade Soda","planned":2000},{"sku":"8008006378491","name":"Pink Grapefruit","planned":2000},{"sku":"8008006378507","name":"Pina Colada","planned":2000},{"sku":"8008006378514","name":"Grape","planned":2000},{"sku":"8008006378521","name":"Kiwi Passion Fruit Guava","planned":2000},{"sku":"8008006378538","name":"Strawberry Cherry Lemon","planned":2000},{"sku":"8008006378545","name":"Cherry Lemon Peach","planned":4000},{"sku":"8008006378552","name":"Watermelon Cherry","planned":4000},{"sku":"8008006378569","name":"Elfbull Ice","planned":2000},{"sku":"8008006378576","name":"Lemon Lime","planned":4000},{"sku":"8008006378583","name":"Grape Cherry","planned":2000},{"sku":"8008006378590","name":"Wild Berries Baja Splash","planned":2000},{"sku":"8008006378606","name":"Grape Apple","planned":4000},{"sku":"8008006378613","name":"Watermelon Sour Peach","planned":4000},{"sku":"8008006378620","name":"Pear Cranberry Lemon","planned":4400}];
+let online = true;
+let draft = {client:"",currency:"UAH",rows:[]};
+let sentOrders = [];
+const $ = id => document.getElementById(id);
+function parseNum(v){return Number(String(v).trim().replace(",",".").replace(/\s/g,""))}
+function sym(c){return c==="USD"?"$":"₴"}
+function money(v){return Number(v).toLocaleString("ru-RU",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function safeLoad(){try{const d=JSON.parse(localStorage.getItem("warehouse_v5_draft")||"null");const h=JSON.parse(localStorage.getItem("warehouse_v5_sent")||"[]");if(d&&typeof d==="object")draft=d;if(Array.isArray(h))sentOrders=h}catch(e){}}
+function safeSave(){try{localStorage.setItem("warehouse_v5_draft",JSON.stringify(draft));localStorage.setItem("warehouse_v5_sent",JSON.stringify(sentOrders))}catch(e){}}
+function msg(text,error=false){const m=$("msg");m.textContent=text;m.className="message"+(error?" error":"");m.style.display="block";if(!error)setTimeout(()=>m.style.display="none",1200)}
+function renderDraft(){$("client").value=draft.client||"";$("currency").value=draft.currency||"UAH";$("count").textContent=draft.rows.length;let tq=0,total=0;for(const r of draft.rows){tq+=Number(r.qty);total+=Number(r.qty)*Number(r.price)}$("totalQty").textContent=tq.toLocaleString("ru-RU");$("totalSum").textContent=money(total)+" "+sym(draft.currency);$("items").innerHTML=draft.rows.length?draft.rows.map((r,i)=>`<div class="item"><div class="item-name">${i+1}. ${r.name}</div><div class="item-meta">SKU ${r.sku}<br>${Number(r.qty).toLocaleString("ru-RU")} шт. × ${money(r.price)} ${sym(draft.currency)}</div><div class="item-total">${money(Number(r.qty)*Number(r.price))} ${sym(draft.currency)}</div><button class="delete" type="button" data-del="${i}">Удалить</button></div>`).join(""):'<div class="empty">Товары ещё не добавлены.</div>'}
+function renderSent(){if(!sentOrders.length){$("sent").innerHTML='<div class="empty">Сегодня отправленных заказов пока нет.</div>';return}$("sent").innerHTML=sentOrders.slice().reverse().map(o=>{const units=o.rows.reduce((a,r)=>a+Number(r.qty),0);const total=o.rows.reduce((a,r)=>a+Number(r.qty)*Number(r.price),0);return `<div class="sent-card"><div class="order-no">Заказ №${o.number}</div><div class="sent-title">${o.client}</div><div class="sent-meta">${o.time} · ${o.rows.length} поз. · ${units.toLocaleString("ru-RU")} ед.<br>Сумма: <b>${money(total)} ${sym(o.currency)}</b><br>Статус: <b>${o.status==="pending"?"Ожидает отправки":"Отправлен"}</b></div></div>`}).join("")}
+function render(){renderDraft();renderSent()}
+$("product").addEventListener("change",()=>{const idx=$("product").value,box=$("fullName");if(idx===""){box.style.display="none";box.innerHTML="";return}const p=PRODUCTS[Number(idx)];box.innerHTML="<b>"+p.name+"</b>SKU: "+p.sku;box.style.display="block"});
+$("addBtn").addEventListener("click",()=>{const idx=$("product").value;const q=parseNum($("qty").value);const p=parseNum($("price").value);if(idx===""){msg("Выберите товар.",true);return}if(!Number.isFinite(q)||q<=0){msg("Введите количество.",true);return}if(!Number.isFinite(p)||p<0){msg("Введите цену.",true);return}const prod=PRODUCTS[Number(idx)];draft.client=$("client").value.trim();draft.currency=$("currency").value;draft.rows.push({sku:prod.sku,name:prod.name,qty:q,price:p});$("product").value="";$("qty").value="";$("price").value="";$("fullName").style.display="none";safeSave();render();msg("Товар добавлен.")});
+$("items").addEventListener("click",e=>{const b=e.target.closest("[data-del]");if(!b)return;draft.rows.splice(Number(b.dataset.del),1);safeSave();render()});
+$("client").addEventListener("input",()=>{draft.client=$("client").value;safeSave()});
+$("currency").addEventListener("change",()=>{draft.currency=$("currency").value;safeSave();render()});
+$("clearCurrent").addEventListener("click",()=>{if(confirm("Очистить текущий заказ?")){draft={client:"",currency:"UAH",rows:[]};safeSave();render()}});
+$("sendBtn").addEventListener("click",()=>{draft.client=$("client").value.trim();draft.currency=$("currency").value;if(!draft.client){alert("Укажите клиента.");return}if(!draft.rows.length){alert("Добавьте хотя бы один товар.");return}const now=new Date();const today=now.toLocaleDateString("ru-RU");const todays=sentOrders.filter(o=>o.date===today).length;const order={number:String(todays+1).padStart(3,"0"),client:draft.client,currency:draft.currency,rows:draft.rows.slice(),date:today,time:now.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"}),status:online?"sent":"pending"};sentOrders.push(order);draft={client:"",currency:"UAH",rows:[]};safeSave();$("product").value="";$("qty").value="";$("price").value="";$("fullName").style.display="none";render();alert(online?"Заказ №"+order.number+" отправлен. Форма очищена для следующего заказа.":"Заказ №"+order.number+" сохранён на телефоне и ждёт связи. Форма очищена для следующего заказа.");$("client").focus()});
+$("clearHistory").addEventListener("click",()=>{if(confirm("Очистить историю отправленных заказов в этом демо?")){sentOrders=[];safeSave();render()}});
+$("netBtn").addEventListener("click",()=>{online=!online;$("netBtn").textContent=online?"🟢 Онлайн":"🔴 Офлайн";if(online){let changed=false;sentOrders=sentOrders.map(o=>{if(o.status==="pending"){changed=true;return {...o,status:"sent"}}return o});if(changed){safeSave();render();alert("Связь появилась. Накопленные заказы синхронизированы.")}}});
+safeLoad();render();
+</script>
+</body>
+</html>
