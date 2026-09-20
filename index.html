@@ -115,7 +115,7 @@ input,select{width:100%;min-height:50px;border:1px solid var(--border);border-ra
 
     <div class="field">
       <label for="search">Поиск товара</label>
-      <input id="search" type="search" autocomplete="off" placeholder="Название или SKU">
+      <input id="search" type="search" autocomplete="off" placeholder="Название товара">
       <div id="results" class="results"></div>
       <div id="selected" class="selected"></div>
     </div>
@@ -173,11 +173,11 @@ input,select{width:100%;min-height:50px;border:1px solid var(--border);border-ra
 
 <script>
 const CATEGORIES = [
-  {id:"flavor",name:"1. Flavor Concentrate"},
-  {id:"bolts",name:"2. Болты (демо)"},
-  {id:"nuts",name:"3. Гайки (демо)"},
-  {id:"washers",name:"4. Шайбы (демо)"},
-  {id:"tools",name:"5. Инструмент (демо)"}
+  {id:"flavor",name:"Flavor Concentrate"},
+  {id:"bolts",name:"Болты (демо)"},
+  {id:"nuts",name:"Гайки (демо)"},
+  {id:"washers",name:"Шайбы (демо)"},
+  {id:"tools",name:"Инструмент (демо)"}
 ];
 
 const PRODUCTS = [
@@ -282,10 +282,15 @@ function buildCategories(){
 function showResults(){
   const category=$("category").value;
   const q=$("search").value.trim().toLowerCase();
-  const found=PRODUCTS.filter(p=>p.category===category&&(!q||p.name.toLowerCase().includes(q)||p.sku.toLowerCase().includes(q))).slice(0,20);
+  const found=PRODUCTS.filter(p=>{
+    if(p.category!==category)return false;
+    if(!q)return true;
+    if(p.name.toLowerCase().includes(q))return true;
+    return category!=="flavor" && p.sku.toLowerCase().includes(q);
+  }).slice(0,20);
   const box=$("results");
   box.innerHTML=found.length?found.map(p=>
-    '<div class="result" data-sku="'+p.sku+'"><b>'+p.name+'</b><span>SKU '+p.sku+' · '+catName(p.category)+'</span></div>'
+    '<div class="result" data-sku="'+p.sku+'"><b>'+p.name+'</b><span>'+(p.category==="flavor"?catName(p.category):('SKU '+p.sku+' · '+catName(p.category)))+'</span></div>'
   ).join(""):'<div class="result"><span>Ничего не найдено</span></div>';
   box.style.display="block";
 }
@@ -301,7 +306,7 @@ function renderDraft(){
   $("items").innerHTML=draft.rows.length?draft.rows.map((r,i)=>
     '<div class="item">'+
       '<div class="item-name">'+(i+1)+'. '+r.name+'</div>'+
-      '<div class="item-meta">'+catName(r.category)+'<br>SKU '+r.sku+'<br>'+Number(r.qty).toLocaleString("ru-RU")+' шт.</div>'+
+      '<div class="item-meta">'+catName(r.category)+(r.category==="flavor"?"":('<br>SKU '+r.sku))+'<br>'+Number(r.qty).toLocaleString("ru-RU")+' шт.</div>'+
       '<div class="item-price-edit"><span>Цена за единицу</span><input type="text" inputmode="decimal" data-price-index="'+i+'" value="'+r.price+'"></div>'+
       '<div class="item-total">'+money(Number(r.qty)*Number(r.price))+' '+sym(draft.currency)+'</div>'+
       '<button class="delete" type="button" data-del="'+i+'">Удалить</button>'+
@@ -345,7 +350,9 @@ $("category").addEventListener("change",()=>{
   $("search").value="";
   $("selected").style.display="none";
   $("results").style.display="none";
-  $("price").value=categoryPrices[$("category").value]||"";
+  $("search").placeholder=$("category").value==="flavor"?"Название товара":"Название или SKU";
+  $("search").placeholder=$("category").value==="flavor"?"Название товара":"Название или SKU";
+$("price").value=categoryPrices[$("category").value]||"";
 });
 $("search").addEventListener("focus",showResults);
 $("search").addEventListener("input",()=>{selectedProduct=null;$("selected").style.display="none";showResults()});
@@ -354,7 +361,7 @@ $("results").addEventListener("click",e=>{
   if(!row)return;
   selectedProduct=PRODUCTS.find(p=>p.sku===row.dataset.sku);
   $("search").value=selectedProduct.name;
-  $("selected").innerHTML='<b>'+selectedProduct.name+'</b><br>SKU: '+selectedProduct.sku+'<br>'+catName(selectedProduct.category);
+  $("selected").innerHTML='<b>'+selectedProduct.name+'</b><br>'+(selectedProduct.category==="flavor"?"":('SKU: '+selectedProduct.sku+'<br>'))+catName(selectedProduct.category);
   $("selected").style.display="block";
   $("results").style.display="none";
   $("price").value=categoryPrices[selectedProduct.category]||"";
